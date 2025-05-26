@@ -109,6 +109,8 @@
 int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, char *CmdLine, int CmdShow);
 void StartProcess();
 void StopProcess();
+bool StartClient(const char* host, uint16_t port, const char* username, const char* password);
+
 
 
 #endif	// VPNCSVC_H

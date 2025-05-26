@@ -275,9 +275,11 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, char *CmdLine, int CmdShow)
 //#include <netinet/ip.h>
 #include <netdb.h>
 #include <net/if.h>
+#ifdef __linux__
 #include <net/if_arp.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
 //#include <curses.h>
 #ifdef	MAYAQUA_SUPPORTS_GETIFADDRS
 #include <ifaddrs.h>

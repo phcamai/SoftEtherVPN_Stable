@@ -2103,7 +2103,7 @@ wchar_t *Prompt(wchar_t *prompt_str)
 		}
 	}
 	Free(tmp);
-#else	// OS_WIN32
+##elif defined(__linux__)	// OS_WIN32
 	{
 		char *prompt = CopyUniToStr(prompt_str);
 		char *s = readline(prompt);
@@ -2124,7 +2124,7 @@ wchar_t *Prompt(wchar_t *prompt_str)
 			free(s);
 		}
 	}
-#endif	// OS_WIN32
+#endif	// __linux__
 
 	if (ret == NULL)
 	{

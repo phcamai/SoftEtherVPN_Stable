@@ -5291,7 +5291,7 @@ CRYPT *NewCrypt(void *key, UINT size)
 {
 	CRYPT *c = ZeroMalloc(sizeof(CRYPT));
 
-	c->Rc4Key = Malloc(sizeof(struct rc4_key_st));
+	c->Rc4Key = Malloc(sizeof(RC4_KEY));
 
 	RC4_set_key(c->Rc4Key, size, (UCHAR *)key);
 

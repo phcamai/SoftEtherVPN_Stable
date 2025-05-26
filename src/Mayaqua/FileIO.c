@@ -1483,9 +1483,32 @@ void InitGetExeName(char *arg)
 	Free(arg_w);
 }
 
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
 // Get the full path of the executable binary file in Unix
 void UnixGetExeNameW(wchar_t *name, UINT size, wchar_t *arg)
 {
+#ifdef __APPLE__
+    // Use Apple API to get bundle executable path
+    CFBundleRef mainBundle = CFBundleGetMainBundle();
+    CFURLRef executableURL = CFBundleCopyExecutableURL(mainBundle);
+
+    if (executableURL != NULL) {
+        char path[1024];
+        if (CFURLGetFileSystemRepresentation(executableURL, true, (UInt8 *)path, sizeof(path))) {
+            wchar_t *pathW = CopyUtfToUni(path);
+            UniStrCpy(name, size, pathW);
+            Free(pathW);
+        } else {
+            UniStrCpy(name, size, L"./a.out");
+        }
+        CFRelease(executableURL);
+    } else {
+        UniStrCpy(name, size, L"./a.out");
+    }
+#else
 	UNI_TOKEN_LIST *t;
 	char *path_str;
 	wchar_t *path_str_w;
@@ -1541,6 +1564,8 @@ void UnixGetExeNameW(wchar_t *name, UINT size, wchar_t *arg)
 #endif	// OS_UNIX
 		ConbinePathW(name, size, name, arg);
 	}
+    
+#endif // APPLE
 }
 
 // Generate a secure file name
@@ -1824,7 +1849,7 @@ void CombinePathW(wchar_t *dst, UINT size, wchar_t *dirname, wchar_t *filename)
 }
 
 // Check whether the file exists
-bool IsFileExists(char *name)
+int IsFileExists(char *name)
 {
 	wchar_t *name_w = CopyStrToUni(name);
 	bool ret = IsFileExistsW(name_w);
@@ -1833,7 +1858,7 @@ bool IsFileExists(char *name)
 
 	return ret;
 }
-bool IsFileExistsW(wchar_t *name)
+int IsFileExistsW(wchar_t *name)
 {
 	wchar_t tmp[MAX_SIZE];
 	// Validate arguments
@@ -1846,7 +1871,7 @@ bool IsFileExistsW(wchar_t *name)
 
 	return IsFileExistsInnerW(tmp);
 }
-bool IsFileExistsInner(char *name)
+int IsFileExistsInner(char *name)
 {
 	wchar_t *name_w = CopyStrToUni(name);
 	bool ret = IsFileExistsInnerW(name_w);
@@ -1855,7 +1880,7 @@ bool IsFileExistsInner(char *name)
 
 	return ret;
 }
-bool IsFileExistsInnerW(wchar_t *name)
+int IsFileExistsInnerW(wchar_t *name)
 {
 	IO *o;
 	// Validate arguments
@@ -1996,7 +2021,7 @@ void GetCurrentDir(char *name, UINT size)
 }
 
 // Get the relative path
-bool GetRelativePathW(wchar_t *dst, UINT size, wchar_t *fullpath, wchar_t *basepath)
+int GetRelativePathW(wchar_t *dst, UINT size, wchar_t *fullpath, wchar_t *basepath)
 {
 	wchar_t fullpath2[MAX_SIZE];
 	wchar_t basepath2[MAX_SIZE];
@@ -2030,7 +2055,7 @@ bool GetRelativePathW(wchar_t *dst, UINT size, wchar_t *fullpath, wchar_t *basep
 
 	return true;
 }
-bool GetRelativePath(char *dst, UINT size, char *fullpath, char *basepath)
+int GetRelativePath(char *dst, UINT size, char *fullpath, char *basepath)
 {
 	wchar_t dst_w[MAX_SIZE];
 	wchar_t fullpath_w[MAX_SIZE];
@@ -2244,7 +2269,7 @@ void FileCloseAndDelete(IO *o)
 }
 
 // Rename the file
-bool FileRename(char *old_name, char *new_name)
+int FileRename(char *old_name, char *new_name)
 {
 	wchar_t *old_name_w = CopyStrToUni(old_name);
 	wchar_t *new_name_w = CopyStrToUni(new_name);
@@ -2255,7 +2280,7 @@ bool FileRename(char *old_name, char *new_name)
 
 	return ret;
 }
-bool FileRenameW(wchar_t *old_name, wchar_t *new_name)
+int FileRenameW(wchar_t *old_name, wchar_t *new_name)
 {
 	wchar_t tmp1[MAX_SIZE];
 	wchar_t tmp2[MAX_SIZE];
@@ -2270,7 +2295,7 @@ bool FileRenameW(wchar_t *old_name, wchar_t *new_name)
 
 	return FileRenameInnerW(tmp1, tmp2);
 }
-bool FileRenameInner(char *old_name, char *new_name)
+int FileRenameInner(char *old_name, char *new_name)
 {
 	wchar_t *old_name_w = CopyStrToUni(old_name);
 	wchar_t *new_name_w = CopyStrToUni(new_name);
@@ -2281,7 +2306,7 @@ bool FileRenameInner(char *old_name, char *new_name)
 
 	return ret;
 }
-bool FileRenameInnerW(wchar_t *old_name, wchar_t *new_name)
+int FileRenameInnerW(wchar_t *old_name, wchar_t *new_name)
 {
 	// Validate arguments
 	if (old_name == NULL || new_name == NULL)
@@ -2331,7 +2356,7 @@ void ConvertPathW(wchar_t *path)
 }
 
 // Delete the directory
-bool DeleteDir(char *name)
+int DeleteDir(char *name)
 {
 	wchar_t *name_w = CopyStrToUni(name);
 	bool ret = DeleteDirW(name_w);
@@ -2340,7 +2365,7 @@ bool DeleteDir(char *name)
 
 	return ret;
 }
-bool DeleteDirW(wchar_t *name)
+int DeleteDirW(wchar_t *name)
 {
 	wchar_t tmp[MAX_SIZE];
 	// Validate arguments
@@ -2353,7 +2378,7 @@ bool DeleteDirW(wchar_t *name)
 
 	return DeleteDirInnerW(tmp);
 }
-bool DeleteDirInner(char *name)
+int DeleteDirInner(char *name)
 {
 	wchar_t *name_w = CopyStrToUni(name);
 	bool ret = DeleteDirInnerW(name_w);
@@ -2362,7 +2387,7 @@ bool DeleteDirInner(char *name)
 
 	return ret;
 }
-bool DeleteDirInnerW(wchar_t *name)
+int DeleteDirInnerW(wchar_t *name)
 {
 	// Validate arguments
 	if (name == NULL)
@@ -2406,7 +2431,7 @@ void InnerFilePath(char *dst, UINT size, char *src)
 }
 
 // Recursive directory creation
-bool MakeDirEx(char *name)
+int MakeDirEx(char *name)
 {
 	bool ret;
 	wchar_t *name_w = CopyStrToUni(name);
@@ -2417,7 +2442,7 @@ bool MakeDirEx(char *name)
 
 	return ret;
 }
-bool MakeDirExW(wchar_t *name)
+int MakeDirExW(wchar_t *name)
 {
 	LIST *o;
 	wchar_t tmp[MAX_PATH];
@@ -2466,7 +2491,7 @@ bool MakeDirExW(wchar_t *name)
 }
 
 // Create a directory
-bool MakeDir(char *name)
+int MakeDir(char *name)
 {
 	wchar_t *name_w = CopyStrToUni(name);
 	bool ret = MakeDirW(name_w);
@@ -2475,7 +2500,7 @@ bool MakeDir(char *name)
 
 	return ret;
 }
-bool MakeDirW(wchar_t *name)
+int MakeDirW(wchar_t *name)
 {
 	wchar_t tmp[MAX_SIZE];
 	// Validate arguments
@@ -2488,7 +2513,7 @@ bool MakeDirW(wchar_t *name)
 
 	return MakeDirInnerW(tmp);
 }
-bool MakeDirInner(char *name)
+int MakeDirInner(char *name)
 {
 	wchar_t *name_w = CopyStrToUni(name);
 	bool ret = MakeDirInnerW(name_w);
@@ -2497,7 +2522,7 @@ bool MakeDirInner(char *name)
 
 	return ret;
 }
-bool MakeDirInnerW(wchar_t *name)
+int MakeDirInnerW(wchar_t *name)
 {
 	// Validate arguments
 	if (name == NULL)
@@ -2509,7 +2534,7 @@ bool MakeDirInnerW(wchar_t *name)
 }
 
 // Delete the file
-bool FileDelete(char *name)
+int FileDelete(char *name)
 {
 	wchar_t *name_w = CopyStrToUni(name);
 	bool ret = FileDeleteW(name_w);
@@ -2518,7 +2543,7 @@ bool FileDelete(char *name)
 
 	return ret;
 }
-bool FileDeleteW(wchar_t *name)
+int FileDeleteW(wchar_t *name)
 {
 	wchar_t tmp[MAX_SIZE];
 	// Validate arguments
@@ -2531,7 +2556,7 @@ bool FileDeleteW(wchar_t *name)
 
 	return FileDeleteInnerW(tmp);
 }
-bool FileDeleteInner(char *name)
+int FileDeleteInner(char *name)
 {
 	wchar_t *name_w = CopyStrToUni(name);
 	bool ret = FileDeleteInnerW(name_w);
@@ -2540,7 +2565,7 @@ bool FileDeleteInner(char *name)
 
 	return ret;
 }
-bool FileDeleteInnerW(wchar_t *name)
+int FileDeleteInnerW(wchar_t *name)
 {
 	wchar_t name2[MAX_SIZE];
 	// Validate arguments
@@ -2556,7 +2581,7 @@ bool FileDeleteInnerW(wchar_t *name)
 }
 
 // Seek the file
-bool FileSeek(IO *o, UINT mode, int offset)
+int FileSeek(IO *o, UINT mode, int offset)
 {
 	// Validate arguments
 	if (o == NULL)
@@ -2638,7 +2663,7 @@ UINT FileSize(IO *o)
 }
 
 // Read from a file
-bool FileRead(IO *o, void *buf, UINT size)
+int FileRead(IO *o, void *buf, UINT size)
 {
 	// Validate arguments
 	if (o == NULL || buf == NULL)
@@ -2666,7 +2691,7 @@ bool FileRead(IO *o, void *buf, UINT size)
 }
 
 // Write to a file
-bool FileWrite(IO *o, void *buf, UINT size)
+int FileWrite(IO *o, void *buf, UINT size)
 {
 	// Validate arguments
 	if (o == NULL || buf == NULL)
@@ -2712,7 +2737,7 @@ void FileClose(IO *o)
 {
 	FileCloseEx(o, false);
 }
-void FileCloseEx(IO *o, bool no_flush)
+void FileCloseEx(IO *o, int no_flush)
 {
 	// Validate arguments
 	if (o == NULL)
@@ -2806,7 +2831,7 @@ IO *FileCreateW(wchar_t *name)
 }
 
 // Write all the data to the file
-bool FileWriteAll(char *name, void *data, UINT size)
+int FileWriteAll(char *name, void *data, UINT size)
 {
 	IO *io;
 	// Validate arguments
@@ -2828,7 +2853,7 @@ bool FileWriteAll(char *name, void *data, UINT size)
 
 	return true;
 }
-bool FileWriteAllW(wchar_t *name, void *data, UINT size)
+int FileWriteAllW(wchar_t *name, void *data, UINT size)
 {
 	IO *io;
 	// Validate arguments
@@ -2852,7 +2877,7 @@ bool FileWriteAllW(wchar_t *name, void *data, UINT size)
 }
 
 // Open the file
-IO *FileOpenInner(char *name, bool write_mode, bool read_lock)
+IO *FileOpenInner(char *name, int write_mode, int read_lock)
 {
 	wchar_t *name_w = CopyStrToUni(name);
 	IO *ret = FileOpenInnerW(name_w, write_mode, read_lock);
@@ -2861,7 +2886,7 @@ IO *FileOpenInner(char *name, bool write_mode, bool read_lock)
 
 	return ret;
 }
-IO *FileOpenInnerW(wchar_t *name, bool write_mode, bool read_lock)
+IO *FileOpenInnerW(wchar_t *name, int write_mode, int read_lock)
 {
 	IO *o;
 	void *p;
@@ -2896,15 +2921,15 @@ IO *FileOpenInnerW(wchar_t *name, bool write_mode, bool read_lock)
 
 	return o;
 }
-IO *FileOpen(char *name, bool write_mode)
+IO *FileOpen(char *name, int write_mode)
 {
 	return FileOpenEx(name, write_mode, true);
 }
-IO *FileOpenW(wchar_t *name, bool write_mode)
+IO *FileOpenW(wchar_t *name, int write_mode)
 {
 	return FileOpenExW(name, write_mode, true);
 }
-IO *FileOpenEx(char *name, bool write_mode, bool read_lock)
+IO *FileOpenEx(char *name, int write_mode, int read_lock)
 {
 	wchar_t *name_w = CopyStrToUni(name);
 	IO *ret = FileOpenExW(name_w, write_mode, read_lock);
@@ -2913,7 +2938,7 @@ IO *FileOpenEx(char *name, bool write_mode, bool read_lock)
 
 	return ret;
 }
-IO *FileOpenExW(wchar_t *name, bool write_mode, bool read_lock)
+IO *FileOpenExW(wchar_t *name, int write_mode, int read_lock)
 {
 	wchar_t tmp[MAX_SIZE];
 	// Validate arguments

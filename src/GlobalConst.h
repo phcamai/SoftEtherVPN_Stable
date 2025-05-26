@@ -162,7 +162,23 @@
 
 #define	GC_UI_APPID_CM				L"SoftEther.SoftEther VPN Client"
 
+#ifdef __APPLE__
+int system(const char *cmd) {
+    // iOS does not support system()
+    return -1;
+}
+#endif
 
+#ifdef _WIN32
+#include <conio.h>
+#elif defined(__linux__)
+#include <ncurses.h>
+#else
+// iOS/macOS fallback
+int getch() {
+    return -1;  // not supported
+}
+#endif
 
 #endif	// GLOBAL_CONST_H
 
