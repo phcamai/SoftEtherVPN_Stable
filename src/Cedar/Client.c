@@ -10221,7 +10221,7 @@ BUF *EncryptPassword(char *password)
 {
 	UCHAR *tmp;
 	UINT size;
-	char *key = "EncryptPassword";
+	char key[] = "EncryptPassword";
 	CRYPT *c;
 	BUF *b;
 	// Validate arguments

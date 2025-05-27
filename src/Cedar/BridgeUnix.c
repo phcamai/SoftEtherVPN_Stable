@@ -1540,6 +1540,8 @@ typedef struct UNIXTHREAD
 	bool finished;
 } UNIXTHREAD;
 
+extern void FreeTap(VLAN *v);
+
 // Close Ethernet adapter
 void CloseEth(ETH *e)
 {
