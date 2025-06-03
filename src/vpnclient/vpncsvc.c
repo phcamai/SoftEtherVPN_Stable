@@ -131,64 +131,6 @@ void StopProcess()
 	FreeCedar();
 }
 
-bool StartClient(const char* host, uint16_t port, const char* username, const char* password) {
-    // Start the client
-    //InitCedar();
-    CtStartClient();
-    
-    PACK *p;
-    RPC_CLIENT_CREATE_ACCOUNT c;
-    
-    p = NewPack();
-    InRpcClientCreateAccount(&c, p);
-    
-    UniStrCpy(c.ClientOption->AccountName, sizeof(c.ClientOption->AccountName), L"vpn_account");
-    StrCpy(c.ClientOption->Hostname, sizeof(c.ClientOption->Hostname), host);
-    c.ClientOption->Port = port;
-    c.ClientOption->UseEncrypt = true;
-    StrCpy(c.ClientOption->DeviceName, sizeof(c.ClientOption->DeviceName), "VPN");
-
-    c.ClientAuth->AuthType = CLIENT_AUTHTYPE_PASSWORD;
-    StrCpy(c.ClientAuth->Username, sizeof(c.ClientAuth->Username), username);
-    StrCpy(c.ClientAuth->PlainPassword, sizeof(c.ClientAuth->PlainPassword), password);
-    
-
-    // Create a dummy REMOTE_CLIENT context
-    CLIENT *r = CtGetClient();
-
-    bool ret = CtCreateAccount(r, &c, true);
-    if (!ret) {
-        printf("CcCreateAccount failed: %u\n", r->Err);
-
-        // Stop the client
-        CiFreeClientCreateAccount(&c);
-        CtStopClient();
-        FreePack(p);
-        
-        return false;
-    }
-
-    RPC_CLIENT_CONNECT c1;
-    Zero(&c1, sizeof(c1));
-    UniStrCpy(c1.AccountName, sizeof(c1.AccountName), L"vpn_account");
-    ret = CtConnect(r, &c1);
-    if (!ret) {
-        printf("CcStart failed: %u\n", r->Err);
-
-        // Stop the client
-        CiFreeClientCreateAccount(&c);
-        CtStopClient();
-        FreePack(p);
-
-        return false;
-    }
-    
-    CiFreeClientCreateAccount(&c);
-    FreePack(p);
-    
-    return true;
-}
-
 // WinMain function
 int main(int argc, char *argv[])
 {

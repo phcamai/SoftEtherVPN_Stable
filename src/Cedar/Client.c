@@ -6628,7 +6628,7 @@ bool CtConnect(CLIENT *c, RPC_CLIENT_CONNECT *connect)
 			if (t.NumItem == 0)
 			{
 				// There are no virtual LAN cards in the system
-				if (OS_IS_WINDOWS_NT(GetOsInfo()->OsType) || OS_IS_UNIX(GetOsInfo()->OsType))
+				if (!IsIOSRuntime() && (OS_IS_WINDOWS_NT(GetOsInfo()->OsType) || OS_IS_UNIX(GetOsInfo()->OsType)))
 				{
 					// Only in Linux system or Windows NT system,
 					// create a new virtual LAN card which named as "VPN" automatically
@@ -6672,7 +6672,7 @@ bool CtConnect(CLIENT *c, RPC_CLIENT_CONNECT *connect)
 
 		Free(t.ClientOption);
 
-#ifndef	OS_WIN32
+#if !defined(OS_WIN32) && !defined(TARGET_OS_IOS)
 		// Search for the virtual LAN card
 		LockList(c->UnixVLanList);
 		{
@@ -6692,7 +6692,7 @@ bool CtConnect(CLIENT *c, RPC_CLIENT_CONNECT *connect)
 			unix_disabled = v->Enabled ? false : true;
 		}
 		UnlockList(c->UnixVLanList);
-#endif	// OS_WIN32
+#endif	// OS_WIN32 && TARGET_OS_IOS
 
 		Lock(r->lock);
 		{
